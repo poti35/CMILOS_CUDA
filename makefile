@@ -32,14 +32,17 @@ HOST_SIZE   := $(shell getconf LONG_BIT)
 SRCDIR= src
 DEPENCOMMON=$(SRCDIR)/calculosCompartidos.o $(SRCDIR)/fgauss.o $(SRCDIR)/fvoigt.o  $(SRCDIR)/me_der.o $(SRCDIR)/mil_sinrf.o $(SRCDIR)/lib.o $(SRCDIR)/create_cuantic.o $(SRCDIR)/utilsFits.o $(SRCDIR)/milosUtils.o $(SRCDIR)/convolution.o $(SRCDIR)/readConfig.o
 DEPEN_SEQ=$(SRCDIR)/milos.o 
-LDLIBS= -lm -lcfitsio -lnsl -lgsl -lgslcblas -lfftw3 -ldl -lpthread 
+LDLIBS= -lm -lcfitsio -lnsl -lgsl -lgslcblas -lfftw3 -ldl -lpthread -L/usr/local/cuda/lib64 -lcudart -lcusolver
 BIN= milos  
 
 
-all: $(BIN)
+all: $(BIN) cuda_eigenvalues.o
 
-milos: $(DEPENCOMMON) $(DEPEN_SEQ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
+cuda_eigenvalues.o: 
+	$(CC) -c -I/usr/local/cuda/include cuda_eigenvalues.c
+
+milos: $(DEPENCOMMON) $(DEPEN_SEQ) cuda_eigenvalues.o
+	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS) 
 
 clean:
 	rm -f  $(SRCDIR)/*.o $(BIN)

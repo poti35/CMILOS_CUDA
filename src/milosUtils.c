@@ -12,7 +12,7 @@
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "convolution.h"
-
+#include "cuda_eigenvalues.h"
 
 
 extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
@@ -652,7 +652,8 @@ int lm_mils(Cuantic *cuantic, PRECISION *wlines, PRECISION *lambda, int nlambda,
 			covar[ind] = alpha[ind] * (1.0 + flambda);
 		}
 
-		mil_svd(covar, betad, delta);
+		//mil_svd(covar, betad, delta);
+		mil_svd_cuda(covar, betad, delta);
 		AplicaDelta(initModel, delta, fixed, &model);
 
 		check(&model);
