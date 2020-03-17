@@ -39,7 +39,7 @@ BIN= milos
 all: $(BIN) $(SRCDIR)/cuda_eigenvalues.o
 
 $(SRCDIR)/cuda_eigenvalues.o: 
-	$(CC) -c -I/usr/local/cuda/include $(SRCDIR)/cuda_eigenvalues.c
+	$(CC) -c -o $(SRCDIR)/cuda_eigenvalues.o -I/usr/local/cuda/include $(SRCDIR)/cuda_eigenvalues.c
 
 milos: $(DEPENCOMMON) $(DEPEN_SEQ) $(SRCDIR)/cuda_eigenvalues.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS) 
