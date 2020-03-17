@@ -18,7 +18,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	
 	static PRECISION h1[NTERMS * NTERMS];
 	
-	static PRECISION v[NTERMS], w[NTERMS*NTERMS]; // w --> eigenvalues , v --> eigenvectors 
+	static PRECISION V[NTERMS], W[NTERMS*NTERMS]; // w --> eigenvalues , v --> eigenvectors 
 	int i, j;
 	static PRECISION aux2[NTERMS];
 	int aux_nf, aux_nc;
