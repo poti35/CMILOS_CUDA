@@ -65,13 +65,13 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
     assert(cudaSuccess == cudaStat1);
 
-    printf("\n DEVICE MEMORY CALCULATE\n");
+    //printf("\n DEVICE MEMORY CALCULATE\n");
 // step 4: compute spectrum
     cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,devInfo);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
     assert(cudaSuccess == cudaStat1);
-    printf("\n eigenvalues calculados\n");
+    //printf("\n eigenvalues calculados\n");
 
     cudaStat1 = cudaMemcpy(v, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
     cudaStat2 = cudaMemcpy(w, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
