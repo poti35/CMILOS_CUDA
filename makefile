@@ -23,7 +23,7 @@ CFLAGS+=-fno-omit-frame-pointer
 
 HOST_SIZE   := $(shell getconf LONG_BIT)
 
-CFLAGS+=-m${HOST_SIZE}
+#CFLAGS+=-m${HOST_SIZE}
 #CFLAGS+=-qopt-report=5
 #CFLAGS+=-Wall -Wextra
 #CFLAGS+=-Wconversion
@@ -32,17 +32,13 @@ CFLAGS+=-m${HOST_SIZE}
 SRCDIR= src
 DEPENCOMMON=$(SRCDIR)/calculosCompartidos.o $(SRCDIR)/fgauss.o $(SRCDIR)/fvoigt.o  $(SRCDIR)/me_der.o $(SRCDIR)/mil_sinrf.o $(SRCDIR)/lib.o $(SRCDIR)/create_cuantic.o $(SRCDIR)/utilsFits.o $(SRCDIR)/milosUtils.o $(SRCDIR)/convolution.o $(SRCDIR)/readConfig.o
 DEPEN_SEQ=$(SRCDIR)/milos.o 
-DEPEN_PAR=$(SRCDIR)/milosMPI.o 
-LDLIBS= -lm -lcfitsio -lnsl -lgsl -lgslcblas -lfftw3 -ldl -lpthread # -shared-intel
-BIN= milos milosMPI 
+LDLIBS= -lm -lcfitsio -lnsl -lgsl -lgslcblas -lfftw3 -ldl -lpthread 
+BIN= milos  
 
 
 all: $(BIN)
 
 milos: $(DEPENCOMMON) $(DEPEN_SEQ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
-
-milosMPI: $(DEPENCOMMON) $(DEPEN_PAR)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS)
 
 clean:
