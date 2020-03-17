@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "defines.h"
+#include "lib.h"
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
 
