@@ -18,7 +18,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	
 	static PRECISION h1[NTERMS * NTERMS];
 	
-	static PRECISION V[NTERMS], W[NTERMS*NTERMS]; // w --> eigenvalues , v --> eigenvectors 
+	static PRECISION v[NTERMS], w[NTERMS*NTERMS]; // w --> eigenvalues , v --> eigenvectors 
 	int i, j;
 	static PRECISION aux2[NTERMS];
 	int aux_nf, aux_nc;
@@ -70,8 +70,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
     assert(cudaSuccess == cudaStat1);
 
-    cudaStat1 = cudaMemcpy(W, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
-    cudaStat2 = cudaMemcpy(V, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
     cudaStat3 = cudaMemcpy(&info_gpu, devInfo, sizeof(int), cudaMemcpyDeviceToHost);
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
