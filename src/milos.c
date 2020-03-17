@@ -116,6 +116,9 @@ gsl_vector *eval;
 gsl_matrix *evec;
 gsl_eigen_symmv_workspace * workspace;
 
+/// eigen values 
+
+
 int main(int argc, char **argv)
 {
 	int i; // for indexes
@@ -761,7 +764,7 @@ int main(int argc, char **argv)
 					initModel.S1 = INITIAL_MODEL.S1;
 					
 					// CLASSICAL ESTIMATES TO GET B, GAMMA
-					estimacionesClasicas(wlines[1], vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, &initModel,1);
+					/*estimacionesClasicas(wlines[1], vLambda, nlambda, fitsImage->pixels[indexPixel].spectro, &initModel,1);
 					if (isnan(initModel.B))
 						initModel.B = 1;
 					if (isnan(initModel.vlos))
@@ -769,7 +772,7 @@ int main(int argc, char **argv)
 					if (isnan(initModel.gm))
 						initModel.gm = 1;						
 					if (isnan(initModel.az))
-						initModel.az = 1;
+						initModel.az = 1;*/
 					// INVERSION RTE
 
 					PRECISION * slightPixel;
