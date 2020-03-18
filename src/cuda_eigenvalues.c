@@ -148,7 +148,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
     assert(cudaSuccess == cudaStat1);*/
 /* step 5: compute eigen-pair   */
-    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,d_W, d_work,lwork,d_info,syevj_params);
+    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS, d_W, d_work,lwork,d_info,syevj_params);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);    
