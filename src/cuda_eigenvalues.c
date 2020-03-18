@@ -136,7 +136,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);*/
 
 /* step 4: query working space of syevj */
-    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W, &lwork,syevj_params);
+    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
@@ -148,7 +148,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
     assert(cudaSuccess == cudaStat1);*/
 /* step 5: compute eigen-pair   */
-    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS, d_W, d_work,lwork,d_info,syevj_params);
+    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);    
@@ -156,7 +156,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
     cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
-    cudaStat3 = cudaMemcpy(&info_gpu, devInfo, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaStat3 = cudaMemcpy(&info_gpu, d_info, sizeof(int), cudaMemcpyDeviceToHost);
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
     assert(cudaSuccess == cudaStat3);
