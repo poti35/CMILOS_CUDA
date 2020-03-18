@@ -90,7 +90,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     // step 3: query working space of syevd
     cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvalues and eigenvectors.
-    cublasFillMode_t uplo = CUBLAS_FILL_MODE_LOWER;
+    cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
     cusolver_status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
     assert (cusolver_status == CUSOLVER_STATUS_SUCCESS);
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
