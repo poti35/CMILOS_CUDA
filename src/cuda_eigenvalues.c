@@ -79,8 +79,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     int info_gpu = 0;
 
     /* configuration of syevj  */
-    const double tol = 1.e-7;
-    const int max_sweeps = 15;
+    const double tol = 1.e-14;
+    const int max_sweeps = 100;
     const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvectors.
     const cublasFillMode_t  uplo = CUBLAS_FILL_MODE_LOWER;
 
