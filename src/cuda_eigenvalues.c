@@ -45,8 +45,11 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	v1 = gsl_matrix_ptr(evec,0,0);
 
     printf("\n AUTOVECTORES GSL V1\n");
-    for(i=0;i<NTERMS*NTERMS;i++){
-        printf("%f\n",v1[i]);
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            printf("%f\t",v1[j+ (NTERMS*i)]);
+        }   
+        printf("\n");
     }
     printf("\n");
 
@@ -118,8 +121,11 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
 
     printf("\n AUTOVECTORES CUDA V1\n");
-    for(i=0;i<NTERMS*NTERMS;i++){
-        printf("%f\n",v[i]);
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            printf("%f\t",v[j+ (NTERMS*i)]);
+        }
+        printf("\n");
     }
     printf("\n");
 
