@@ -73,6 +73,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     double *d_A = NULL;
     double *d_W = NULL;
     int *devInfo = NULL;
+    int *d_info = NULL; /* error info */
     double *d_work = NULL;
     int  lwork = 0;
     int info_gpu = 0;
