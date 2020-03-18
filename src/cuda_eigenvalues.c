@@ -118,7 +118,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     // step 2: copy A and B to device
     cudaStat1 = cudaMalloc ((void**)&d_A, sizeof(double) * NTERMS * NTERMS);
     cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
-    cudaStat3 = cudaMalloc ((void**)&devInfo, sizeof(int));
+    cudaStat3 = cudaMalloc ((void**)&d_info, sizeof(int));
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
     assert(cudaSuccess == cudaStat3);
@@ -165,7 +165,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 // free resources
     if (d_A    ) cudaFree(d_A);
     if (d_W    ) cudaFree(d_W);
-    if (devInfo) cudaFree(devInfo);
+    if (d_info) cudaFree(d_info);
     if (d_work ) cudaFree(d_work);
 
     if (cusolverH) cusolverDnDestroy(cusolverH);
