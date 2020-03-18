@@ -64,7 +64,9 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     /********************* CALCULATE EIGEN VALUES AND EIGEN VECTORS *************************/
     cusolverDnHandle_t cusolverH = NULL;
-    cusolverStatus_t cusolver_status = CUSOLVER_STATUS_SUCCESS;
+    cudaStream_t stream = NULL;
+    syevjInfo_t syevj_params = NULL;
+    cusolverStatus_t status = CUSOLVER_STATUS_SUCCESS;
     cudaError_t cudaStat1 = cudaSuccess;
     cudaError_t cudaStat2 = cudaSuccess;
     cudaError_t cudaStat3 = cudaSuccess;
@@ -74,9 +76,44 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     double *d_work = NULL;
     int  lwork = 0;
     int info_gpu = 0;
+
+    /* configuration of syevj  */
+    const double tol = 1.e-7;
+    const int max_sweeps = 15;
+    const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvectors.
+    const cublasFillMode_t  uplo = CUBLAS_FILL_MODE_LOWER;
+
     // step 1: create cusolver/cublas handle
-    cusolver_status = cusolverDnCreate(&cusolverH);
-    assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
+    /*cusolver_status = cusolverDnCreate(&cusolverH);
+    assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);*/
+
+    /* step 1: create cusolver handle, bind a stream  */
+    status = cusolverDnCreate(&cusolverH);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+
+    cudaStat1 = cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
+    assert(cudaSuccess == cudaStat1);
+
+    status = cusolverDnSetStream(cusolverH, stream);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+
+/* step 2: configuration of syevj */
+    status = cusolverDnCreateSyevjInfo(&syevj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+
+/* default value of tolerance is machine zero */
+    status = cusolverDnXsyevjSetTolerance(
+        syevj_params,
+        tol);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+
+/* default value of max. sweeps is 100 */
+    status = cusolverDnXsyevjSetMaxSweeps(
+        syevj_params,
+        max_sweeps);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+
+
     // step 2: copy A and B to device
     cudaStat1 = cudaMalloc ((void**)&d_A, sizeof(double) * NTERMS * NTERMS);
     cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
@@ -89,19 +126,31 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);
 
     // step 3: query working space of syevd
-    cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvalues and eigenvectors.
+
+    /*cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvalues and eigenvectors.
     cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
     cusolver_status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
     assert (cusolver_status == CUSOLVER_STATUS_SUCCESS);
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
-    assert(cudaSuccess == cudaStat1);
+    assert(cudaSuccess == cudaStat1);*/
 
-    //printf("\n DEVICE MEMORY CALCULATE\n");
+/* step 4: query working space of syevj */
+    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W, &lwork,syevj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+ 
+    cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
+    assert(cudaSuccess == cudaStat1);
+    
 // step 4: compute spectrum
-    cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,devInfo);
+    /*cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,devInfo);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
-    assert(cudaSuccess == cudaStat1);
+    assert(cudaSuccess == cudaStat1);*/
+/* step 5: compute eigen-pair   */
+    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,d_W, d_work,lwork,d_info,syevj_params);
+    cudaStat1 = cudaDeviceSynchronize();
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+    assert(cudaSuccess == cudaStat1);    
     //printf("\n eigenvalues calculados\n");
 
     cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
