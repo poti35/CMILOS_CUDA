@@ -48,9 +48,6 @@
 Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
 
 
-PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
-int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
-int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
 REAL *dtaux, *etai_gp3, *ext1, *ext2, *ext3, *ext4;
 REAL *gp1, *gp2, *dt, *dti, *gp3, *gp4, *gp5, *gp6, *etai_2;

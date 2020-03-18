@@ -12,14 +12,22 @@
 #include "lib.h"
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_eigen.h>
+
+
+extern gsl_vector *eval;
+extern gsl_matrix *evec;
+extern gsl_eigen_symmv_workspace * workspace;
 
 
 int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
-	PRECISION epsilon;
 	
+    PRECISION epsilon;
 	static PRECISION h1[NTERMS * NTERMS];
-	
-	static PRECISION v[NTERMS], w[NTERMS*NTERMS]; // w --> eigenvalues , v --> eigenvectors 
+	PRECISION v[NTERMS*NTERMS], w[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
+    PRECISION *v1, *w1;
 	int i, j;
 	static PRECISION aux2[NTERMS];
 	int aux_nf, aux_nc;
@@ -30,6 +38,24 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	{
 		h1[j] = h[j];
 	}
+
+	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
+	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
+	w1 = gsl_vector_ptr(eval,0);
+	v1 = gsl_matrix_ptr(evec,0,0);
+
+    printf("\n AUTOVECTORES GSL V1\n");
+    for(i=0;i<NTERMS*NTERMS;i++){
+        printf("%f\n",v1[i]);
+    }
+    printf("\n");
+
+    printf("\n AUTOVALORES GSL W1 \n");
+    for(i=0;i<NTERMS;i++){
+        printf("%f\n",w1[i]);
+    }
+    printf("\n");    
+
 
     /********************* CALCULATE EIGEN VALUES AND EIGEN VECTORS *************************/
     cusolverDnHandle_t cusolverH = NULL;
@@ -73,8 +99,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);
     //printf("\n eigenvalues calculados\n");
 
-    cudaStat1 = cudaMemcpy(v, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
-    cudaStat2 = cudaMemcpy(w, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
     cudaStat3 = cudaMemcpy(&info_gpu, devInfo, sizeof(int), cudaMemcpyDeviceToHost);
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
@@ -90,6 +116,18 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     if (cusolverH) cusolverDnDestroy(cusolverH);
     /****************************************************************************************/
 
+
+    printf("\n AUTOVECTORES CUDA V1\n");
+    for(i=0;i<NTERMS*NTERMS;i++){
+        printf("%f\n",v[i]);
+    }
+    printf("\n");
+
+    printf("\n AUTOVALORES CUDA W1 \n");
+    for(i=0;i<NTERMS;i++){
+        printf("%f\n",w[i]);
+    }
+    printf("\n");    
 
 
 

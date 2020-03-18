@@ -15,9 +15,6 @@
 #include "cuda_eigenvalues.h"
 
 
-extern PRECISION **PUNTEROS_CALCULOS_COMPARTIDOS;
-extern int POSW_PUNTERO_CALCULOS_COMPARTIDOS;
-extern int POSR_PUNTERO_CALCULOS_COMPARTIDOS;
 
 extern REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
 
