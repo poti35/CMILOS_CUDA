@@ -182,7 +182,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     printf("\n");
 
     printf("\n AUTOVALORES CUDA W1 \n");
-    for(i=NTERMS-1;i>=0;i++){
+    for(i=NTERMS-1;i>=0;i--){
         printf("%f\n",w[i]);
     }
     printf("\n");    
