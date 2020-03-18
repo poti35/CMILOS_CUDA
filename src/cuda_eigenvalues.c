@@ -26,6 +26,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	
     PRECISION epsilon;
 	static PRECISION h1[NTERMS * NTERMS];
+    static PRECISION h2[NTERMS * NTERMS];
 	PRECISION v[NTERMS*NTERMS], w[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
     PRECISION *v1, *w1;
 	int i, j;
@@ -37,6 +38,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	for (j = 0; j < NTERMS * NTERMS; j++)
 	{
 		h1[j] = h[j];
+        h2[j] = h[j];
 	}
 
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
@@ -83,7 +85,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat2);
     assert(cudaSuccess == cudaStat3);
 
-    cudaStat1 = cudaMemcpy(d_A, h1, sizeof(double) * NTERMS * NTERMS, cudaMemcpyHostToDevice);
+    cudaStat1 = cudaMemcpy(d_A, h2, sizeof(double) * NTERMS * NTERMS, cudaMemcpyHostToDevice);
     assert(cudaSuccess == cudaStat1);
 
     // step 3: query working space of syevd
