@@ -36,7 +36,7 @@ LDLIBS= -lm -lcfitsio -lnsl -lgsl -lgslcblas -lfftw3 -ldl -lpthread -L/usr/local
 BIN= milos  
 
 
-all: $(BIN)
+all: $(BIN) $(SRCDIR)/cuda_eigenvalues.o
 
 $(SRCDIR)/cuda_eigenvalues.o: 
 	$(CC) -c -o $(SRCDIR)/cuda_eigenvalues.o -I/usr/local/cuda/include $(SRCDIR)/cuda_eigenvalues.c
@@ -46,3 +46,6 @@ milos: $(DEPENCOMMON) $(DEPEN_SEQ) $(SRCDIR)/cuda_eigenvalues.o
 
 clean:
 	rm -f  $(SRCDIR)/*.o $(BIN)
+
+clean_eg: 
+	rm -f  $(SRCDIR)/cuda_eigenvalues.o
