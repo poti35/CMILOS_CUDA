@@ -24,6 +24,7 @@ extern gsl_eigen_symmv_workspace * workspace;
 
 int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	
+    const int batchSize = 1;
     PRECISION epsilon;
 	static PRECISION h1[NTERMS * NTERMS];
     static PRECISION h2[NTERMS * NTERMS];
@@ -99,6 +100,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     /* configuration of syevj  */
     const double tol = 1.e-14;
     const int max_sweeps = 15;
+    const int sort_svd  = 0;   /* don't sort singular values */
     const cusolverEigType_t itype = CUSOLVER_EIG_TYPE_1;
     const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvectors.
     const cublasFillMode_t  uplo = CUBLAS_FILL_MODE_UPPER;
@@ -146,9 +148,15 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         max_sweeps);
     assert(CUSOLVER_STATUS_SUCCESS == status);
 
+/* disable sorting */
+    status = cusolverDnXgesvdjSetSortEig(
+        gesvdj_params,
+        sort_svd);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+
     // step 2: copy A and B to device
     cudaStat1 = cudaMalloc ((void**)&d_A, sizeof(double) * NTERMS * NTERMS);
-    cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
+    //cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
     cudaStat2 = cudaMalloc ((void**)&d_S   , sizeof(double)* NTERMS);
     cudaStat3 = cudaMalloc ((void**)&d_U   , sizeof(double)*NTERMS*NTERMS);
     cudaStat4 = cudaMalloc ((void**)&d_V   , sizeof(double)*NTERMS*NTERMS);    
@@ -172,25 +180,37 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 /* step 4: query working space of syevj */
     //status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
     //status = cusolverDnDsygvj_bufferSize(cusolverH,itype,jobz,uplo,NTERMS,d_A,NTERMS,d_B,lda, d_W,&lwork,syevj_params);
-        status = cusolverDnDgesvdj_bufferSize(
+   /*     status = cusolverDnDgesvdj_bufferSize(
         cusolverH,
-        jobz, /* CUSOLVER_EIG_MODE_NOVECTOR: compute singular values only */
-              /* CUSOLVER_EIG_MODE_VECTOR: compute singular value and singular vectors */
-        econ, /* econ = 1 for economy size */
-        NTERMS,    /* nubmer of rows of A, 0 <= m */
-        NTERMS,    /* number of columns of A, 0 <= n  */
-        d_A,  /* m-by-n */
-        NTERMS,  /* leading dimension of A */
-        d_S,  /* min(m,n) */
-              /* the singular values in descending order */
-        d_U,  /* m-by-m if econ = 0 */
-              /* m-by-min(m,n) if econ = 1 */
-        NTERMS,  /* leading dimension of U, ldu >= max(1,m) */
-        d_V,  /* n-by-n if econ = 0  */
-              /* n-by-min(m,n) if econ = 1  */
-        NTERMS,  /* leading dimension of V, ldv >= max(1,n) */
+        jobz, 
+        econ, 
+        NTERMS, 
+        NTERMS, 
+        d_A,  
+        NTERMS, 
+        d_S,  
+        d_U,  
+        NTERMS,  
+        d_V,  
+        NTERMS,  
         &lwork,
-        gesvdj_params);
+        gesvdj_params);*/
+    status = cusolverDnDgesvdjBatched_bufferSize(
+        cusolverH,
+        jobz,
+        NTERMS,
+        NTERMS,
+        d_A,
+        NTERMS,
+        d_S,
+        d_U,
+        NTERMS,
+        d_V,
+        NTERMS,
+        &lwork,
+        gesvdj_params,
+        batchSize
+    );        
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
@@ -203,28 +223,41 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);*/
 /* step 5: compute eigen-pair   */
     //status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
-    status = cusolverDnDgesvdj(
+    /*status = cusolverDnDgesvdj(
         cusolverH,
-        jobz,  /* CUSOLVER_EIG_MODE_NOVECTOR: compute singular values only */
-               /* CUSOLVER_EIG_MODE_VECTOR: compute singular value and singular vectors */
-        econ,  /* econ = 1 for economy size */
-        NTERMS,     /* nubmer of rows of A, 0 <= m */
-        NTERMS,     /* number of columns of A, 0 <= n  */
-        d_A,   /* m-by-n */
-        NTERMS,   /* leading dimension of A */
-        d_S,   /* min(m,n)  */
-               /* the singular values in descending order */
-        d_U,   /* m-by-m if econ = 0 */
-               /* m-by-min(m,n) if econ = 1 */
-        NTERMS,   /* leading dimension of U, ldu >= max(1,m) */
-        d_V,   /* n-by-n if econ = 0  */
-               /* n-by-min(m,n) if econ = 1  */
-        NTERMS,   /* leading dimension of V, ldv >= max(1,n) */
+        jobz, 
+        econ,  
+        NTERMS, 
+        NTERMS, 
+        d_A,  
+        NTERMS, 
+        d_S, 
+        d_U, 
+        NTERMS, 
+        d_V,  
+        NTERMS,  
         d_work,
         lwork,
         d_info,
-        gesvdj_params);
-    cudaStat1 = cudaDeviceSynchronize();    
+        gesvdj_params);*/
+    status = cusolverDnDgesvdjBatched(
+        cusolverH,
+        jobz,
+        NTERMS,
+        NTERMS,
+        d_A,
+        NTERMS,
+        d_S,
+        d_U,
+        NTERMS,
+        d_V,
+        NTERMS,
+        d_work,
+        lwork,
+        d_info,
+        gesvdj_params,
+        batchSize
+    );    
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);    
