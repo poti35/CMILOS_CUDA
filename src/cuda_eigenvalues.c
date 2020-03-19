@@ -155,9 +155,9 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);*/
     
 // step 4: compute spectrum
-    cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info);
+    status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info);
     cudaStat1 = cudaDeviceSynchronize();
-    assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);
 /* step 5: compute eigen-pair   */
     /*status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
