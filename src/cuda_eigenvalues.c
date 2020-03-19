@@ -140,8 +140,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     // step 3: query working space of syevd
 
-    cusolver_status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
-    assert (cusolver_status == CUSOLVER_STATUS_SUCCESS);
+    status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
+    assert (status == CUSOLVER_STATUS_SUCCESS);
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
     assert(cudaSuccess == cudaStat1);
 
@@ -155,7 +155,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);*/
     
 // step 4: compute spectrum
-    cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_Info);
+    cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
     assert(cudaSuccess == cudaStat1);
