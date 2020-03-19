@@ -70,7 +70,7 @@ int main(int argc, char*argv[])
 
     const double tol = 1.e-7;
     const int max_sweeps = 15;
-    const int sort_svd  = 0;   /* don't sort singular values */
+    const int sort_svd  = 2;   /* don't sort singular values */3
     const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; /* compute singular vectors */
 
 /* residual and executed_sweeps are not supported on gesvdjBatched */
