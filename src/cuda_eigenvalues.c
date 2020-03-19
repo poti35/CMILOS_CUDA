@@ -140,30 +140,30 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     // step 3: query working space of syevd
 
-    status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
+    /*status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
     assert (status == CUSOLVER_STATUS_SUCCESS);
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
-    assert(cudaSuccess == cudaStat1);
+    assert(cudaSuccess == cudaStat1);*/
 
 /* step 4: query working space of syevj */
-    /*status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
+    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
     //status = cusolverDnDsygvj_bufferSize(cusolverH,itype,jobz,uplo,NTERMS,d_A,NTERMS,d_B,lda, d_W,&lwork,syevj_params);
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
-    assert(cudaSuccess == cudaStat1);*/
+    assert(cudaSuccess == cudaStat1);
     
 // step 4: compute spectrum
-    status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info);
+    /*status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
-    assert(cudaSuccess == cudaStat1);
+    assert(cudaSuccess == cudaStat1);*/
 /* step 5: compute eigen-pair   */
-    /*status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
+    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
-    assert(cudaSuccess == cudaStat1);    */
+    assert(cudaSuccess == cudaStat1);    
     //printf("\n eigenvalues calculados\n");
 
     cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
