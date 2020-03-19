@@ -41,7 +41,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	for (j = 0; j < NTERMS * NTERMS; j++)
 	{
 		h1[j] = h[j];
-        h2[j] = h[j];
+        //h2[j] = h[j];
 	}
 
     // h2  must be stored in column major 
