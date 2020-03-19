@@ -83,8 +83,9 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     /* configuration of syevj  */
     const double tol = 1.e-14;
     const int max_sweeps = 15;
+    const cusolverEigType_t itype = CUSOLVER_EIG_TYPE_1;
     const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvectors.
-    const cublasFillMode_t  uplo = CUBLAS_FILL_MODE_LOWER;
+    const cublasFillMode_t  uplo = CUBLAS_FILL_MODE_UPPER;
 
     // step 1: create cusolver/cublas handle
     /*cusolver_status = cusolverDnCreate(&cusolverH);
@@ -139,6 +140,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
 /* step 4: query working space of syevj */
     status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
+    status = cusolverDnDsygvj_bufferSize(cusolverH,itype,jobz,uplo,NTERMS,d_A,NTERMS,d_B,lda, d_W,&lwork,syevj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
