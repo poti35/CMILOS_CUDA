@@ -31,7 +31,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
 	PRECISION v[NTERMS*NTERMS], w[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
     PRECISION *v1, *w1;
-	int i, j;
+	int i, j,col, fil;
+    
 	static PRECISION aux2[NTERMS];
 	int aux_nf, aux_nc;
 	
@@ -42,6 +43,14 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 		h1[j] = h[j];
         h2[j] = h[j];
 	}
+
+    // h2  must be stored in column major 
+    int index=0;
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            h2[index++] = h[i + (j*NTERMS)  ];
+        }
+    }
 
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
@@ -186,7 +195,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     }
 
     printf("\n\n");
-    int fil,col;
+    
     for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
             h3[fil][col]=v[j+ (NTERMS*i)];
