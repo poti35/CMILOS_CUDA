@@ -77,17 +77,23 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     cusolverDnHandle_t cusolverH = NULL;
     cudaStream_t stream = NULL;
     syevjInfo_t syevj_params = NULL;
+    gesvdjInfo_t gesvdj_params = NULL;
     cusolverStatus_t status = CUSOLVER_STATUS_SUCCESS;
     cudaError_t cudaStat1 = cudaSuccess;
     cudaError_t cudaStat2 = cudaSuccess;
     cudaError_t cudaStat3 = cudaSuccess;
+    cudaError_t cudaStat4 = cudaSuccess;
+    cudaError_t cudaStat5 = cudaSuccess;    
     double *d_A = NULL;
     double *d_W = NULL;
-    int *devInfo = NULL;
+    double *d_S = NULL;  /* singular values */
+    double *d_U = NULL;  /* left singular vectors */
+    double *d_V = NULL;  /* right singular vectors */
     int *d_info = NULL; /* error info */
     double *d_work = NULL;
     int  lwork = 0;
     int info_gpu = 0;
+    int info = 0;        /* host copy of error info */
 
     /* configuration of syevj  */
     const double tol = 1.e-14;
@@ -111,29 +117,46 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == status);
 
 /* step 2: configuration of syevj */
-    status = cusolverDnCreateSyevjInfo(&syevj_params);
-    assert(CUSOLVER_STATUS_SUCCESS == status);
+   /* status = cusolverDnCreateSyevjInfo(&syevj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);*/
+
+/* step 2: configuration of gesvdj */
+    status = cusolverDnCreateGesvdjInfo(&gesvdj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);    
 
 /* default value of tolerance is machine zero */
-    status = cusolverDnXsyevjSetTolerance(
+    /*status = cusolverDnXsyevjSetTolerance(
         syevj_params,
+        tol);
+    assert(CUSOLVER_STATUS_SUCCESS == status);*/
+
+    status = cusolverDnXgesvdjSetTolerance(
+        gesvdj_params,
         tol);
     assert(CUSOLVER_STATUS_SUCCESS == status);
 
 /* default value of max. sweeps is 100 */
-    status = cusolverDnXsyevjSetMaxSweeps(
+    /*status = cusolverDnXsyevjSetMaxSweeps(
         syevj_params,
         max_sweeps);
+    assert(CUSOLVER_STATUS_SUCCESS == status);*/
+    status = cusolverDnXgesvdjSetMaxSweeps(
+        gesvdj_params,
+        max_sweeps);
     assert(CUSOLVER_STATUS_SUCCESS == status);
-
 
     // step 2: copy A and B to device
     cudaStat1 = cudaMalloc ((void**)&d_A, sizeof(double) * NTERMS * NTERMS);
     cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
+    cudaStat2 = cudaMalloc ((void**)&d_S   , sizeof(double)* NTERMS);
+    cudaStat3 = cudaMalloc ((void**)&d_U   , sizeof(double)*NTERMS*NTERMS);
+    cudaStat4 = cudaMalloc ((void**)&d_V   , sizeof(double)*NTERMS*NTERMS);    
     cudaStat3 = cudaMalloc ((void**)&d_info, sizeof(int));
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
     assert(cudaSuccess == cudaStat3);
+    assert(cudaSuccess == cudaStat4);
+    assert(cudaSuccess == cudaStat5);
 
     cudaStat1 = cudaMemcpy(d_A, h2, sizeof(double) * NTERMS * NTERMS, cudaMemcpyHostToDevice);
     assert(cudaSuccess == cudaStat1);
@@ -144,11 +167,29 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert (status == CUSOLVER_STATUS_SUCCESS);
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
     assert(cudaSuccess == cudaStat1);*/
-
+    const int econ = 0 ; /* econ = 1 for economy size */
 /* step 4: query working space of syevj */
-    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
+    //status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
     //status = cusolverDnDsygvj_bufferSize(cusolverH,itype,jobz,uplo,NTERMS,d_A,NTERMS,d_B,lda, d_W,&lwork,syevj_params);
-    assert(CUSOLVER_STATUS_SUCCESS == status);
+        status = cusolverDnDgesvdj_bufferSize(
+        cusolverH,
+        jobz, /* CUSOLVER_EIG_MODE_NOVECTOR: compute singular values only */
+              /* CUSOLVER_EIG_MODE_VECTOR: compute singular value and singular vectors */
+        econ, /* econ = 1 for economy size */
+        NTERMS,    /* nubmer of rows of A, 0 <= m */
+        NTERMS,    /* number of columns of A, 0 <= n  */
+        d_A,  /* m-by-n */
+        NTERMS,  /* leading dimension of A */
+        d_S,  /* min(m,n) */
+              /* the singular values in descending order */
+        d_U,  /* m-by-m if econ = 0 */
+              /* m-by-min(m,n) if econ = 1 */
+        NTERMS,  /* leading dimension of U, ldu >= max(1,m) */
+        d_V,  /* n-by-n if econ = 0  */
+              /* n-by-min(m,n) if econ = 1  */
+        NTERMS,  /* leading dimension of V, ldv >= max(1,n) */
+        &lwork,
+        gesvdj_params);
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
@@ -160,44 +201,92 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);*/
 /* step 5: compute eigen-pair   */
-    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
+    //status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
+    status = cusolverDnDgesvdj(
+        cusolverH,
+        jobz,  /* CUSOLVER_EIG_MODE_NOVECTOR: compute singular values only */
+               /* CUSOLVER_EIG_MODE_VECTOR: compute singular value and singular vectors */
+        econ,  /* econ = 1 for economy size */
+        NTERMS,     /* nubmer of rows of A, 0 <= m */
+        NTERMS,     /* number of columns of A, 0 <= n  */
+        d_A,   /* m-by-n */
+        NTERMS,   /* leading dimension of A */
+        d_S,   /* min(m,n)  */
+               /* the singular values in descending order */
+        d_U,   /* m-by-m if econ = 0 */
+               /* m-by-min(m,n) if econ = 1 */
+        NTERMS,   /* leading dimension of U, ldu >= max(1,m) */
+        d_V,   /* n-by-n if econ = 0  */
+               /* n-by-min(m,n) if econ = 1  */
+        NTERMS,   /* leading dimension of V, ldv >= max(1,n) */
+        d_work,
+        lwork,
+        d_info,
+        gesvdj_params);
+    cudaStat1 = cudaDeviceSynchronize();    
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);    
     //printf("\n eigenvalues calculados\n");
 
-    cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
-    cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    //cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
+    //cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
     //cudaStat3 = cudaMemcpy(&info_gpu, d_info, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaStat1 = cudaMemcpy(U, d_U, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat2 = cudaMemcpy(V, d_V, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat3 = cudaMemcpy(S, d_S, sizeof(double)*NTERMS    , cudaMemcpyDeviceToHost);
+    cudaStat4 = cudaMemcpy(&info, d_info, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaStat5 = cudaDeviceSynchronize();
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
+    assert(cudaSuccess == cudaStat3);
+    assert(cudaSuccess == cudaStat4);
+    assert(cudaSuccess == cudaStat5);
     //assert(cudaSuccess == cudaStat3);
 
 
 // free resources
     if (d_A    ) cudaFree(d_A);
-    if (d_W    ) cudaFree(d_W);
+    if (d_S    ) cudaFree(d_S);
+    if (d_U    ) cudaFree(d_U);
+    if (d_V    ) cudaFree(d_V);
     if (d_info) cudaFree(d_info);
     if (d_work ) cudaFree(d_work);
 
     if (cusolverH) cusolverDnDestroy(cusolverH);
+    if (stream      ) cudaStreamDestroy(stream);
+    if (gesvdj_params) cusolverDnDestroyGesvdjInfo(gesvdj_params);
     /****************************************************************************************/
+    printf("\n AUTOVALORES CUDA W1 \n");
+    for(i=NTERMS-1;i>=0;i--){
+        printf("%f\n",S[i]);
+    }
+    printf("\n");    
 
-
-    printf("\n AUTOVECTORES CUDA V1\n");
+    printf("\n AUTOVECTORES U CUDA V1\n");
     for(i=0;i<NTERMS;i++){
         for(j=0;j<NTERMS;j++){
-            printf("%f\t",v[j+ (NTERMS*i)]);
+            printf("%f\t",U[j+ (NTERMS*i)]);
         }
         printf("\n");
     }
 
     printf("\n\n");
     
-    for(i=NTERMS-1,col=0;i>=0;i--,col++){
+    printf("\n AUTOVECTORES V CUDA V1\n");
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            printf("%f\t",V[j+ (NTERMS*i)]);
+        }
+        printf("\n");
+    }
+
+    printf("\n\n");
+
+    /*for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
             h3[fil][col]=v[j+ (NTERMS*i)];
-            //printf("%f(%d,%d)\t",h3[fil][col],fil,col);
+            //printf("%f\t",h3[fil][col]);
         }
         //printf("\n");
     }
@@ -210,14 +299,10 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         }
         printf("\n");
     }
-    printf("\n");
-    printf("\n AUTOVALORES CUDA W1 \n");
-    for(i=NTERMS-1;i>=0;i--){
-        printf("%f\n",w[i]);
-    }
-    printf("\n");    
+    printf("\n");*/
 
 
+    exit(2);
 
 	multmatrix(beta, 1, NTERMS, v, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
 
