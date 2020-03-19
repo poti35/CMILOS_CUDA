@@ -187,12 +187,20 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
             h3[fil][col]=v[j+ (NTERMS*i)];
+            //printf("%f(%d,%d)\t",h3[fil][col],fil,col);
+        }
+        //printf("\n");
+    }
+    printf("\n");
+    printf("\n");
+
+    for(fil=0;fil<NTERMS;fil++){
+        for(col=0;col<NTERMS;col++){
             printf("%f(%d,%d)\t",h3[fil][col],fil,col);
         }
         printf("\n");
     }
     printf("\n");
-
     printf("\n AUTOVALORES CUDA W1 \n");
     for(i=NTERMS-1;i>=0;i--){
         printf("%f\n",w[i]);
