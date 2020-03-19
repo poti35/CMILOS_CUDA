@@ -182,6 +182,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         printf("\n");
     }
 
+    printf("\n\n");
     int fil,col;
     for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
