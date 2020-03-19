@@ -36,7 +36,7 @@ int main(int argc, char*argv[])
     const int lda = m; /* lda >= m */
     const int ldu = m; /* ldu >= m */
     const int ldv = n; /* ldv >= n */
-    const int batchSize = 2;
+    const int batchSize = 1;
     const int minmn = (m < n)? m : n; /* min(m,n) */
 /*  
  *        |  1  -1  |
@@ -78,7 +78,7 @@ int main(int argc, char*argv[])
     int executed_sweeps = 0;
 
     double *A0 = A;
-    double *A1 = A + lda*n; /* Aj is m-by-n */
+    //double *A1 = A + lda*n; /* Aj is m-by-n */
 /*
  *        |  1  -1  |
  *   A0 = | -1   2  |
@@ -99,13 +99,13 @@ int main(int argc, char*argv[])
  *        |  0   0  |
  *   A1 is column-major
  */
-    A1[0 + 0*lda] = 3.0;
+    /*A1[0 + 0*lda] = 3.0;
     A1[1 + 0*lda] = 4.0;
     A1[2 + 0*lda] = 0.0;
 
     A1[0 + 1*lda] = 4.0;
     A1[1 + 1*lda] = 7.0;
-    A1[2 + 1*lda] = 0.0;
+    A1[2 + 1*lda] = 0.0;*/
 
     printf("example of gesvdjBatched \n");
     printf("m = %d, n = %d \n", m, n);
@@ -115,7 +115,7 @@ int main(int argc, char*argv[])
     printf("A0 = (matlab base-1)\n");
     printMatrix(m, n, A0, lda, "A0");
     printf("A1 = (matlab base-1)\n");
-    printMatrix(m, n, A1, lda, "A1");
+    //printMatrix(m, n, A1, lda, "A1");
     printf("=====\n");
 
 /* step 1: create cusolver handle, bind a stream  */
@@ -237,30 +237,30 @@ int main(int argc, char*argv[])
 
 /* Step 6: show singular values and singular vectors */
     double *S0 = S;
-    double *S1 = S + minmn;
+//    double *S1 = S + minmn;
     printf("==== \n");
     for(int i = 0 ; i < minmn ; i++){
         printf("S0(%d) = %20.16E\n", i+1, S0[i]);
     }
     printf("==== \n");
-    for(int i = 0 ; i < minmn ; i++){
+/*    for(int i = 0 ; i < minmn ; i++){
         printf("S1(%d) = %20.16E\n", i+1, S1[i]);
-    }
+    }*/
     printf("==== \n");
 
     double *U0 = U;
-    double *U1 = U + ldu*m; /* Uj is m-by-m */
+    //double *U1 = U + ldu*m; /* Uj is m-by-m */
     printf("U0 = (matlab base-1)\n");
     printMatrix(m, m, U0, ldu, "U0");
-    printf("U1 = (matlab base-1)\n");
-    printMatrix(m, m, U1, ldu, "U1");
+    //printf("U1 = (matlab base-1)\n");
+    //printMatrix(m, m, U1, ldu, "U1");
 
     double *V0 = V;
-    double *V1 = V + ldv*n; /* Vj is n-by-n */
+    //double *V1 = V + ldv*n; /* Vj is n-by-n */
     printf("V0 = (matlab base-1)\n");
     printMatrix(n, n, V0, ldv, "V0");
-    printf("V1 = (matlab base-1)\n");
-    printMatrix(n, n, V1, ldv, "V1");
+    //printf("V1 = (matlab base-1)\n");
+    //printMatrix(n, n, V1, ldv, "V1");
 
 /*
  * The folowing two functions do not support batched version.
