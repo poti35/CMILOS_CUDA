@@ -27,6 +27,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     PRECISION epsilon;
 	static PRECISION h1[NTERMS * NTERMS];
     static PRECISION h2[NTERMS * NTERMS];
+    static PRECISION h3[NTERMS] [NTERMS];
+
 	PRECISION v[NTERMS*NTERMS], w[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
     PRECISION *v1, *w1;
 	int i, j;
@@ -173,12 +175,16 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
 
     printf("\n AUTOVECTORES CUDA V1\n");
-    for(i=0;i<NTERMS;i++){
-        for(j=0;j<NTERMS;j++){
-            printf("%f\t",v[j+ (NTERMS*i)]);
+    int fil,col;
+    for(i=NTERMS-1,col=0;i>=0;i--,col++){
+        for(j=0,fil=0;j<NTERMS;j++,fil++){
+            h3[fil][col]=v[j+ (NTERMS*i)];
+            printf("%f\t",h3[fil][col]);
         }
         printf("\n");
     }
+
+
     printf("\n");
 
     printf("\n AUTOVALORES CUDA W1 \n");
