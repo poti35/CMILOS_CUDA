@@ -259,9 +259,13 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     if (gesvdj_params) cusolverDnDestroyGesvdjInfo(gesvdj_params);
     /****************************************************************************************/
     printf("\n AUTOVALORES CUDA W1 \n");
-    for(i=NTERMS-1;i>=0;i--){
+    /*for(i=NTERMS-1;i>=0;i--){
         printf("%f\n",S[i]);
-    }
+    }*/
+
+    for(i=0;i<NTERMS;i++){
+        printf("%f\n",S[i]);
+    }    
     printf("\n");    
 
     printf("\n AUTOVECTORES U CUDA V1\n");
