@@ -48,7 +48,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     int index=0;
     for(i=0;i<NTERMS;i++){
         for(j=0;j<NTERMS;j++){
-            h2[index++] = h[i + (j*NTERMS)  ];
+            h2[index++] = h[i + (j*NTERMS)];
         }
     }
 
@@ -140,32 +140,32 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     // step 3: query working space of syevd
 
-    /*cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvalues and eigenvectors.
+    cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; // compute eigenvalues and eigenvectors.
     cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
     cusolver_status = cusolverDnDsyevd_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork);
     assert (cusolver_status == CUSOLVER_STATUS_SUCCESS);
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
-    assert(cudaSuccess == cudaStat1);*/
+    assert(cudaSuccess == cudaStat1);
 
 /* step 4: query working space of syevj */
-    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
+    /*status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
     //status = cusolverDnDsygvj_bufferSize(cusolverH,itype,jobz,uplo,NTERMS,d_A,NTERMS,d_B,lda, d_W,&lwork,syevj_params);
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
-    assert(cudaSuccess == cudaStat1);
+    assert(cudaSuccess == cudaStat1);*/
     
 // step 4: compute spectrum
-    /*cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,devInfo);
+    cusolver_status = cusolverDnDsyevd(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_Info);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
-    assert(cudaSuccess == cudaStat1);*/
+    assert(cudaSuccess == cudaStat1);
 /* step 5: compute eigen-pair   */
-    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
+    /*status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
-    assert(cudaSuccess == cudaStat1);    
+    assert(cudaSuccess == cudaStat1);    */
     //printf("\n eigenvalues calculados\n");
 
     cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
