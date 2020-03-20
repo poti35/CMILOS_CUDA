@@ -30,7 +30,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     
 	static PRECISION h1[NTERMS * NTERMS];
     static PRECISION h2[NTERMS * NTERMS];
-    static PRECISION h3[NTERMS] [NTERMS];
+    static PRECISION h3[NTERMS * [NTERMS];
 
     PRECISION U[NTERMS*NTERMS],V[NTERMS*NTERMS], S[NTERMS];
 	PRECISION v[NTERMS*NTERMS], w[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
@@ -340,7 +340,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
-            h3[fil][col]=v[j+ (NTERMS*i)];
+            h3[fil + (col*NTERMS) ]=v[j+ (NTERMS*i)];
             //printf("%f\t",h3[fil][col]);
         }
         //printf("\n");
@@ -350,7 +350,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     for(fil=0;fil<NTERMS;fil++){
         for(col=0;col<NTERMS;col++){
-            printf("%f\t",h3[fil][col]);
+            printf("%f\t",h3[col + (fil * NTERMS)]);
         }
         printf("\n");
     }
