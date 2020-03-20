@@ -340,7 +340,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
-            h3[fil + (col*NTERMS) ]=v[j+ (NTERMS*i)];
+            h3[col + (fil*NTERMS) ]=v[j+ (NTERMS*i)];
             //printf("%f\t",h3[fil][col]);
         }
         //printf("\n");
