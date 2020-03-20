@@ -359,14 +359,38 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     exit(2);
 
-	multmatrix(beta, 1, NTERMS, v, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
+    // delta calculado con gsl 
+    
+    printf("\n DELTA CALCULADO CON GSL\n");
+    multmatrix(beta, 1, NTERMS, v1, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
+
+	for (i = 0; i < NTERMS; i++)
+	{
+		aux2[i]= aux2[i]*((fabs(w1[i]) > epsilon) ? (1/w1[i]): 0.0);
+	}
+
+	multmatrix(v1, NTERMS, NTERMS, aux2, NTERMS, 1, delta, &aux_nf, &aux_nc);
+    for(i=0;i<NTERMS;i++){
+        printf("\n%f",delta[i]);
+    }
+    printf("\n");
+
+    // delta calculado con CUDA 
+
+    printf("\n DELTA CALCULADO CON CUDA\n");
+	multmatrix(beta2, 1, NTERMS, h3, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
 
 	for (i = 0; i < NTERMS; i++)
 	{
 		aux2[i]= aux2[i]*((fabs(w[i]) > epsilon) ? (1/w[i]): 0.0);
 	}
 
-	multmatrix(v, NTERMS, NTERMS, aux2, NTERMS, 1, delta, &aux_nf, &aux_nc);
+	multmatrix(h3, NTERMS, NTERMS, aux2, NTERMS, 1, delta2, &aux_nf, &aux_nc);
+
+    for(i=0;i<NTERMS;i++){
+        printf("\n%f",delta2[i]);
+    }
+    printf("\n");
 	
 	return 1;
 }
