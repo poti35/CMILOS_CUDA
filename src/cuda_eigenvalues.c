@@ -379,7 +379,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     // delta calculado con CUDA 
 
     printf("\n DELTA CALCULADO CON CUDA\n");
-	multmatrix(beta2, 1, NTERMS, h3, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
+	multmatrix(beta, 1, NTERMS, h3, NTERMS, NTERMS, aux2, &aux_nf, &aux_nc);
 
 	for (i = 0; i < NTERMS; i++)
 	{
