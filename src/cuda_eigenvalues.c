@@ -357,7 +357,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     printf("\n");
 
 
-    exit(2);
+    //exit(2);
 
     // delta calculado con gsl 
     
