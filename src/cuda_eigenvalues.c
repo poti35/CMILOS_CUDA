@@ -26,6 +26,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	
     const int batchSize = 1;
     PRECISION epsilon;
+    static PRECISION beta2[NTERMS], delta2[NTERMS];
+    
 	static PRECISION h1[NTERMS * NTERMS];
     static PRECISION h2[NTERMS * NTERMS];
     static PRECISION h3[NTERMS] [NTERMS];
@@ -39,6 +41,11 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	int aux_nf, aux_nc;
 	
 	epsilon = 1e-12;
+
+    for(i=0;i<NTERMS;i++){
+        beta2[i] = beta[i];
+        delta2[i] = delta[i];
+    }
 
 	for (j = 0; j < NTERMS * NTERMS; j++)
 	{
@@ -129,44 +136,44 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == status);
 
 /* step 2: configuration of syevj */
-   /* status = cusolverDnCreateSyevjInfo(&syevj_params);
-    assert(CUSOLVER_STATUS_SUCCESS == status);*/
+    status = cusolverDnCreateSyevjInfo(&syevj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);
 
 /* step 2: configuration of gesvdj */
-    status = cusolverDnCreateGesvdjInfo(&gesvdj_params);
-    assert(CUSOLVER_STATUS_SUCCESS == status);    
+   /* status = cusolverDnCreateGesvdjInfo(&gesvdj_params);
+    assert(CUSOLVER_STATUS_SUCCESS == status);    */
 
 /* default value of tolerance is machine zero */
-    /*status = cusolverDnXsyevjSetTolerance(
+    status = cusolverDnXsyevjSetTolerance(
         syevj_params,
         tol);
-    assert(CUSOLVER_STATUS_SUCCESS == status);*/
+    assert(CUSOLVER_STATUS_SUCCESS == status);
 
-    status = cusolverDnXgesvdjSetTolerance(
+    /*status = cusolverDnXgesvdjSetTolerance(
         gesvdj_params,
         tol);
-    assert(CUSOLVER_STATUS_SUCCESS == status);
+    assert(CUSOLVER_STATUS_SUCCESS == status);*/
 
 /* default value of max. sweeps is 100 */
-    /*status = cusolverDnXsyevjSetMaxSweeps(
+    status = cusolverDnXsyevjSetMaxSweeps(
         syevj_params,
         max_sweeps);
-    assert(CUSOLVER_STATUS_SUCCESS == status);*/
-    status = cusolverDnXgesvdjSetMaxSweeps(
+    assert(CUSOLVER_STATUS_SUCCESS == status);
+    /*status = cusolverDnXgesvdjSetMaxSweeps(
         gesvdj_params,
         max_sweeps);
-    assert(CUSOLVER_STATUS_SUCCESS == status);
+    assert(CUSOLVER_STATUS_SUCCESS == status);*/
 
 /* disable sorting */
-    status = cusolverDnXgesvdjSetSortEig(
+    /*status = cusolverDnXgesvdjSetSortEig(
         gesvdj_params,
         sort_svd);
-    assert(CUSOLVER_STATUS_SUCCESS == status);
+    assert(CUSOLVER_STATUS_SUCCESS == status);*/
 
     // step 2: copy A and B to device
     cudaStat1 = cudaMalloc ((void**)&d_A, sizeof(double) * NTERMS * NTERMS);
-    //cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
-    cudaStat2 = cudaMalloc ((void**)&d_S   , sizeof(double)* NTERMS);
+    cudaStat2 = cudaMalloc ((void**)&d_W, sizeof(double) * NTERMS);
+    //cudaStat2 = cudaMalloc ((void**)&d_S   , sizeof(double)* NTERMS);
     cudaStat3 = cudaMalloc ((void**)&d_U   , sizeof(double)*NTERMS*NTERMS);
     cudaStat4 = cudaMalloc ((void**)&d_V   , sizeof(double)*NTERMS*NTERMS);    
     cudaStat3 = cudaMalloc ((void**)&d_info, sizeof(int));
@@ -187,7 +194,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(cudaSuccess == cudaStat1);*/
     const int econ = 0 ; /* econ = 1 for economy size */
 /* step 4: query working space of syevj */
-    //status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
+    status = cusolverDnDsyevj_bufferSize(cusolverH,jobz,uplo,NTERMS,d_A,NTERMS,d_W,&lwork,syevj_params);
     //status = cusolverDnDsygvj_bufferSize(cusolverH,itype,jobz,uplo,NTERMS,d_A,NTERMS,d_B,lda, d_W,&lwork,syevj_params);
    /*     status = cusolverDnDgesvdj_bufferSize(
         cusolverH,
@@ -204,7 +211,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         NTERMS,  
         &lwork,
         gesvdj_params);*/
-    status = cusolverDnDgesvdjBatched_bufferSize(
+    /*status = cusolverDnDgesvdjBatched_bufferSize(
         cusolverH,
         jobz,
         NTERMS,
@@ -219,7 +226,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         &lwork,
         gesvdj_params,
         batchSize
-    );        
+    );*/        
     assert(CUSOLVER_STATUS_SUCCESS == status);
  
     cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double)*lwork);
@@ -231,7 +238,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);*/
 /* step 5: compute eigen-pair   */
-    //status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
+    status = cusolverDnDsyevj(cusolverH,jobz,uplo, NTERMS,d_A,NTERMS,d_W,d_work,lwork,d_info,syevj_params);
     /*status = cusolverDnDgesvdj(
         cusolverH,
         jobz, 
@@ -249,7 +256,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         lwork,
         d_info,
         gesvdj_params);*/
-    status = cusolverDnDgesvdjBatched(
+    /*status = cusolverDnDgesvdjBatched(
         cusolverH,
         jobz,
         NTERMS,
@@ -266,18 +273,18 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         d_info,
         gesvdj_params,
         batchSize
-    );    
+    );*/    
     cudaStat1 = cudaDeviceSynchronize();
     assert(CUSOLVER_STATUS_SUCCESS == status);
     assert(cudaSuccess == cudaStat1);    
     //printf("\n eigenvalues calculados\n");
 
-    //cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
-    //cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat1 = cudaMemcpy(w, d_W, sizeof(double)*NTERMS, cudaMemcpyDeviceToHost);
+    cudaStat2 = cudaMemcpy(v, d_A, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
     //cudaStat3 = cudaMemcpy(&info_gpu, d_info, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaStat1 = cudaMemcpy(U, d_U, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
-    cudaStat2 = cudaMemcpy(V, d_V, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
-    cudaStat3 = cudaMemcpy(S, d_S, sizeof(double)*NTERMS    , cudaMemcpyDeviceToHost);
+    //cudaStat1 = cudaMemcpy(U, d_U, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    //cudaStat2 = cudaMemcpy(V, d_V, sizeof(double)*NTERMS*NTERMS, cudaMemcpyDeviceToHost);
+    //cudaStat3 = cudaMemcpy(S, d_S, sizeof(double)*NTERMS    , cudaMemcpyDeviceToHost);
     cudaStat4 = cudaMemcpy(&info, d_info, sizeof(int), cudaMemcpyDeviceToHost);
     cudaStat5 = cudaDeviceSynchronize();
     assert(cudaSuccess == cudaStat1);
@@ -293,6 +300,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     if (d_S    ) cudaFree(d_S);
     if (d_U    ) cudaFree(d_U);
     if (d_V    ) cudaFree(d_V);
+    if (d_W    ) cudaFree(d_W);
     if (d_info) cudaFree(d_info);
     if (d_work ) cudaFree(d_work);
 
@@ -301,11 +309,11 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     if (gesvdj_params) cusolverDnDestroyGesvdjInfo(gesvdj_params);
     /****************************************************************************************/
     printf("\n AUTOVALORES CUDA W1 \n");
-    /*for(i=NTERMS-1;i>=0;i--){
-        printf("%f\n",S[i]);
-    }*/
+    for(i=NTERMS-1;i>=0;i--){
+        printf("%f\n",w[i]);
+    }
 
-    for(i=0;i<NTERMS;i++){
+    /*for(i=0;i<NTERMS;i++){
         printf("%f\n",S[i]);
     }    
     printf("\n");    
@@ -326,11 +334,11 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
             printf("%f\t",V[j+ (NTERMS*i)]);
         }
         printf("\n");
-    }
+    }*/
 
     printf("\n\n");
 
-    /*for(i=NTERMS-1,col=0;i>=0;i--,col++){
+    for(i=NTERMS-1,col=0;i>=0;i--,col++){
         for(j=0,fil=0;j<NTERMS;j++,fil++){
             h3[fil][col]=v[j+ (NTERMS*i)];
             //printf("%f\t",h3[fil][col]);
@@ -342,11 +350,11 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
     for(fil=0;fil<NTERMS;fil++){
         for(col=0;col<NTERMS;col++){
-            printf("%f(%d,%d)\t",h3[fil][col],fil,col);
+            printf("%f\t",h3[fil][col]);
         }
         printf("\n");
     }
-    printf("\n");*/
+    printf("\n");
 
 
     exit(2);
