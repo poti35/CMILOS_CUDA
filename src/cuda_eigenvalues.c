@@ -54,6 +54,15 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
         }
     }*/
 
+    printf("\n MATRIZ H  \n");
+    for(i=0;i<NTERMS;i++){
+        for(j=0;j<NTERMS;j++){
+            printf("%f\t",h2[j+ (NTERMS*i)]);
+        }   
+        printf("\n");
+    }
+    printf("\n");
+
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
 	w1 = gsl_vector_ptr(eval,0);
