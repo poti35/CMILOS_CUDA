@@ -43,16 +43,16 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 	for (j = 0; j < NTERMS * NTERMS; j++)
 	{
 		h1[j] = h[j];
-        //h2[j] = h[j];
+        h2[j] = h[j];
 	}
 
     // h2  must be stored in column major 
-    int index=0;
+    /*int index=0;
     for(i=0;i<NTERMS;i++){
         for(j=0;j<NTERMS;j++){
             h2[index++] = h[i + (j*NTERMS)];
         }
-    }
+    }*/
 
 	gsl_matrix_view gsl_h1 = gsl_matrix_view_array (h1, NTERMS, NTERMS);
 	gsl_eigen_symmv(&gsl_h1.matrix, eval, evec, workspace);
