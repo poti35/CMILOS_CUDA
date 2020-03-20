@@ -33,7 +33,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     static PRECISION h3[NTERMS * NTERMS];
 
     PRECISION U[NTERMS*NTERMS],V[NTERMS*NTERMS], S[NTERMS];
-	PRECISION v[NTERMS*NTERMS], w[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
+	PRECISION v[NTERMS*NTERMS], w[NTERMS], w2[NTERMS]; // w --> eigenvalues , v --> eigenvectors 
     PRECISION *v1, *w1;
 	int i, j,col, fil;
     
@@ -310,7 +310,8 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
     /****************************************************************************************/
     printf("\n AUTOVALORES CUDA W1 \n");
     for(i=NTERMS-1;i>=0;i--){
-        printf("%f\n",w[i]);
+        w2[i] = w[i];
+        printf("%f\n",w2[i]);
     }
 
     /*for(i=0;i<NTERMS;i++){
@@ -382,7 +383,7 @@ int mil_svd_cuda(PRECISION *h, PRECISION *beta, PRECISION *delta){
 
 	for (i = 0; i < NTERMS; i++)
 	{
-		aux2[i]= aux2[i]*((fabs(w[i]) > epsilon) ? (1/w[i]): 0.0);
+		aux2[i]= aux2[i]*((fabs(w2[i]) > epsilon) ? (1/w2[i]): 0.0);
 	}
 
 	multmatrix(h3, NTERMS, NTERMS, aux2, NTERMS, 1, delta2, &aux_nf, &aux_nc);
