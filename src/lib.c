@@ -193,9 +193,36 @@ int multmatrix(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECIS
 	return 0;
 
 }
+/*
+int multmatrixCUBLAS(PRECISION *a,int naf,int nac, PRECISION *b,int nbf,int nbc,PRECISION *result,int *fil,int *col){
+	
+	if(nac==nbf){
+		(*fil)=naf;
+		(*col)=nbc;
+		double * d_a; // d_a - a on the device
+		double * d_b; // d_b - b on the device
+		double * d_c; // d_c - c on the device
+		cudaStat = cudaMalloc (( void **)& d_a ,naf*nac* sizeof (*a)); // device
+		// memory alloc for a
+		cudaStat = cudaMalloc (( void **)& d_b ,nbf*nbc* sizeof (*b)); // device
+		// memory alloc for b
+		cudaStat = cudaMalloc (( void **)& d_c ,*(fil)*(*col)* sizeof (*result)); // device
+		// memory alloc for c
+		stat = cublasCreate (& handle ); // initialize CUBLAS context
+		// copy matrices from the host to the device
+		stat = cublasSetMatrix (naf,nac, sizeof (*a),a,naf,d_a ,naf); //a -> d_a
+		stat = cublasSetMatrix (nbf,nbc, sizeof (*b),b,nbf,d_b ,nbf); //b -> d_b
+		stat = cublasSetMatrix (*fil,*col, sizeof (*result),c,*fil,d_c ,*fil); //c -> d_c
+		double al = 1.0 f; // al =1
+		double bet = 1.0 f; // bet =1
 
+		stat=cublasDgemm(handle,CUBLAS_OP_N,CUBLAS_OP_N,naf,nbc,naf,&al,d_a,naf,d_b,nbf,&bet,d_c,*fil);
+		
+		stat = cublasGetMatrix (*fil,*col, sizeof (*result),d_c ,*fil,result,*col); // cp d_c ->c
 
-
+	}
+}
+*/
 
 int multmatrix_transpose(REAL *a,int naf,int nac, REAL *b,int nbf,int nbc,REAL *result,int *fil,int *col,REAL value){
     

@@ -6,14 +6,12 @@
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include <math.h>
 
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_eigen.h>
+
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
 #include "convolution.h"
 #include "cuda_eigenvalues.h"
-
+#include <svdcmp.h>
 
 
 extern REAL *gp4_gp2_rhoq, *gp5_gp2_rhou, *gp6_gp2_rhov;
@@ -42,9 +40,7 @@ extern fftw_complex * fftw_G_PSF;
 extern Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
 
 
-extern gsl_vector *eval;
-extern gsl_matrix *evec;
-extern gsl_eigen_symmv_workspace * workspace;
+
 
 void spectral_synthesis_convolution(int * nlambda)
 {

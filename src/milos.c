@@ -41,9 +41,9 @@
 #include <unistd.h>
 #include <complex.h>
 #include <fftw3.h> //siempre a continuacion de complex.h
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_eigen.h>
+#include <cuda_runtime.h>
+#include <cufftw.h>
+#include <svdcmp.h>
 
 Cuantic *cuantic; // Variable global, está hecho así, de momento,para parecerse al original
 
@@ -91,6 +91,9 @@ fftw_plan planForwardPSF, planBackwardPSF;
 fftw_plan planForwardMAC, planBackwardMAC;
 fftw_complex * inFilterMAC, * inFilterMAC_DERIV, * outFilterMAC, * outFilterMAC_DERIV;
 fftw_plan planFilterMAC, planFilterMAC_DERIV;
+
+cufftHandle planForwardPSF, planBackwardPSF, planForwardMAC, planBackwardMAC, planFilterMAC, planFilterMAC_DERIV;
+
 
 
 fftw_complex * fftw_G_PSF, * fftw_G_MAC_PSF, * fftw_G_MAC_DERIV_PSF;
@@ -152,7 +155,7 @@ int main(int argc, char **argv)
 	
 	const char	* nameInputFilePSF ;	
 
-   FitsImage * fitsImage;
+   	FitsImage * fitsImage;
 	PRECISION  dat[7];
 
 	/********************* Read data input from file ******************************/
@@ -620,8 +623,8 @@ int main(int argc, char **argv)
 			initModel.S0 = INITIAL_MODEL.S0;
 			initModel.S1 = INITIAL_MODEL.S1;
 
-      	int numIter;
-      	lm_mils(cuantic, wlines, vLambda, nlambda, spectroPER, nlambda, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
+      		int numIter;
+      		lm_mils(cuantic, wlines, vLambda, nlambda, spectroPER, nlambda, &initModel, spectra, &chisqrf, slight, configCrontrolFile.toplim, configCrontrolFile.NumberOfCycles,
                configCrontrolFile.WeightForStokes, configCrontrolFile.fix, configCrontrolFile.sigma, configCrontrolFile.InitialDiagonalElement,&configCrontrolFile.ConvolveWithPSF,&numIter);
 
 			// SAVE OUTPUT MODEL 
@@ -698,9 +701,6 @@ int main(int argc, char **argv)
 			PRECISION timeReadImage;
 			clock_t t;
 			t = clock();
-			
-			
-			//fitsImage = readFitsSpectroImageRectangular(configCrontrolFile.ObservedProfiles,&configCrontrolFile,0);
 			fitsImage = readFitsSpectroImage(nameInputFileSpectra,0);
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
